@@ -2,8 +2,8 @@ import { useState } from "react";
 import { nanoid } from "nanoid";
 import "./App.css";
 
-function ListItem({ title, listItemIndex, handleDeleteItem }) {
-  console.log("hey");
+const ListItem = ({ title, listItemIndex, handleDeleteItem }) => {
+  console.log("hey i am rendering");
 
   return (
     <div className="item">
@@ -11,7 +11,7 @@ function ListItem({ title, listItemIndex, handleDeleteItem }) {
       <button onClick={() => handleDeleteItem(listItemIndex)}>Delete</button>
     </div>
   );
-}
+};
 
 function App() {
   const [item, setItem] = useState("");
