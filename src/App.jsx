@@ -1,10 +1,11 @@
-import { useState, useTransition, useActionState } from "react";
+import { useState, useActionState, useOptimistic } from "react";
 import { useFormStatus } from "react-dom";
+import toast, { Toaster } from "react-hot-toast";
+
 import "./App.css";
 import { mockApi } from "./utils/mockApi";
 import { Button, InputField } from "./components";
 
-import toast, { Toaster } from "react-hot-toast";
 
 const ButtonWrapper = () => {
   const { pending } = useFormStatus();
@@ -17,23 +18,20 @@ const ButtonWrapper = () => {
 };
 
 function App() {
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [currentEmail, setCurrentEmail] = useState("123@gmail.com");
 
-  // const [error, setError] = useState(null);
+  const [optimisticEmail, setOptimisticEmail] = useOptimistic(currentEmail);
 
-  // const [isPending, startTransition] = useTransition();
   const [state, submitAction, isPending] = useActionState(
     async (previousState, _formData) => {
       try {
-        console.log(_formData.get("email"), _formData.get("password"));
-
         const body = {
           email: _formData.get("email"),
-          password: _formData.get("password"),
         };
 
+        setOptimisticEmail(body.email);
+
         if (previousState?.email === _formData.get("email")) {
-          throw new Error();
           toast.error(
             "You have inputted the same email. Please enter a new one!"
           );
@@ -42,23 +40,18 @@ function App() {
 
         const data = await mockApi(body);
 
-        console.log(data);
+        setCurrentEmail(data.email);
 
-        toast.success("Login successful");
+        toast.success("Email updated successfully");
 
         return data;
       } catch (err) {
-        console.log(err);
-        // setError(true);
-        toast.error("Login failed");
-        return { error: true, message: "Failed to login" };
+        toast.error("Email updation failed");
+        return { error: true, message: "Email updation failed" };
       }
     },
     null
   );
-
-  console.log("state", state);
-  console.log("isPending", isPending);
 
   return (
     <>
@@ -69,35 +62,23 @@ function App() {
               {state.message}
             </div>
           ) : null}
+
+          <div>Your current email is : {optimisticEmail}</div>
+
           <form
             action={submitAction}
             className="w-[30rem] grid gap-4 px-4 pt-2 py-6 rounded-lg overflow-hidden border"
           >
             <div className="text-center text-xl font-semibold mb-4">
-              Login in to your account
+              Update Email
             </div>
 
             <InputField
               label="Email"
               name="email"
               placeholder="example@gmail.com"
-              // value={formData.email}
+              defaultValue={currentEmail}
               disabled={isPending}
-              // onChange={(e) =>
-              //   setFormData((prev) => ({ ...prev, email: e.target.value }))
-              // }
-            />
-
-            <InputField
-              label="Password"
-              name="password"
-              type="password"
-              placeholder="password1234"
-              // value={formData.password}
-              disabled={isPending}
-              // onChange={(e) =>
-              //   setFormData((prev) => ({ ...prev, password: e.target.value }))
-              // }
             />
 
             <ButtonWrapper />
